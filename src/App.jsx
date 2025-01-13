@@ -68,6 +68,15 @@ function App() {
             setRandomNumber(number);
             setShowNumber(false);
             updateBingoTable(number);
+            return number; // Return the generated number immediately
+        }
+        return null; // Return null if no numbers are left
+    };
+
+    const handleNextNumber = () => {
+        const newNumber = generateNumber(); // Immediately generate a new number
+        if (newNumber !== null) {
+            speakNumber(newNumber); // Speak the new number directly
         }
     };
 
@@ -106,11 +115,6 @@ function App() {
             utterance.lang = 'pt-PT';
             window.speechSynthesis.speak(utterance);
         }
-    };
-
-    const handleNextNumber = () => {
-        generateNumber();
-        speakNumber();
     };
 
     // Run generateBingoTable once when the component mounts
@@ -177,6 +181,7 @@ function App() {
         </div>
     );
 }
+
 const styles = {
     container: {
         display: 'flex',
