@@ -21,11 +21,9 @@ function App() {
     function generateBingoTable() {
         const table = [];
         const ranges = [
-            [0, 10], [11, 20], [21, 30], [31, 40], [41, 50],
-            [51, 60], [61, 70], [71, 80], [81, 90], [91, 100]
+            [0, 9], [10, 19], [20, 29], [30, 39], [40, 49], [50, 59], [60, 69], [70, 79], [80, 89], [90, 99]
         ];
 
-        // Check if ranges and remainingNumbers are correctly defined
         if (remainingNumbers.length === 0) return table;
 
         for (let row = 0; row < 3; row++) {
@@ -69,6 +67,7 @@ function App() {
             setRemainingNumbers(remainingNumbers.filter((_, i) => i !== randomIndex));
             setRandomNumber(number);
             setShowNumber(false);
+            updateBingoTable(number);
         }
     };
 
@@ -109,11 +108,20 @@ function App() {
         }
     };
 
+    const handleNextNumber = () => {
+        generateNumber();
+        speakNumber();
+    };
+
     // Run generateBingoTable once when the component mounts
     useEffect(() => {
         const newTable = generateBingoTable();
         setBingoTable(newTable);
     }, []);
+
+    const headers = [
+        '00-09', '10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80-89', '90-99'
+    ];
 
     return (
         <div style={styles.container}>
@@ -125,7 +133,7 @@ function App() {
                     ...styles.button,
                     backgroundColor: remainingNumbers.length === 0 ? 'red' : styles.button.backgroundColor
                 }}
-                onClick={() => generateNumber()}
+                onClick={handleNextNumber}
                 disabled={remainingNumbers.length === 0}
             >
                 Next Number
@@ -142,7 +150,7 @@ function App() {
             </button>
             <div style={styles.bingoTable}>
                 <div style={styles.row}>
-                    {['0-10', '11-20', '21-30', '31-40', '41-50', '51-60', '61-70', '71-80', '81-90', '91-100'].map((header, idx) => (
+                    {headers.map((header, idx) => (
                         <div style={styles.headerCell} key={idx}>
                             {header}
                         </div>
@@ -169,7 +177,6 @@ function App() {
         </div>
     );
 }
-
 const styles = {
     container: {
         display: 'flex',
@@ -183,8 +190,10 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        width: '200px',
-        height: '200px',
+        width: '50vw', // 50% of the viewport width
+        maxWidth: '375px', // Maximum width of 375px (half of 750px)
+        height: '50vw', // Height equal to width for a square
+        maxHeight: '375px',
         backgroundColor: '#4caf50',
         borderRadius: '10px',
         boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)',
@@ -192,8 +201,12 @@ const styles = {
         cursor: 'pointer',
     },
     number: {
-        fontSize: '48px',
+        fontSize: '12vw', // Scales the font size with the viewport width
+        maxFontSize: '72px', // Maximum font size for larger screens
         color: '#fff',
+        '@media (maxWidth: 600px)': {
+            fontSize: '14vw', // Slightly larger font for smaller screens
+        },
     },
     button: {
         padding: '10px 20px',
@@ -204,19 +217,32 @@ const styles = {
         borderRadius: '5px',
         margin: '10px',
         cursor: 'pointer',
+        '@media (maxWidth: 600px)': {
+            padding: '8px 16px',
+            fontSize: '14px',
+            margin: '5px',
+        },
     },
     bingoTable: {
         marginTop: '30px',
         display: 'flex',
         flexDirection: 'column',
-        width: '80%',
-        maxWidth: '600px',
+        width: '100%',
+        maxWidth: '750px', // Ensure the table does not exceed 750px
         border: '2px solid #ccc',
         borderRadius: '10px',
         overflow: 'hidden',
+        '@media (maxWidth: 600px)': {
+            width: '95%',
+            marginTop: '20px',
+        },
     },
     row: {
         display: 'flex',
+        flexWrap: 'nowrap',
+        '@media (maxWidth: 600px)': {
+            flexWrap: 'wrap',
+        },
     },
     headerCell: {
         flex: '1',
@@ -225,6 +251,10 @@ const styles = {
         backgroundColor: '#ddd',
         border: '1px solid #ccc',
         fontWeight: 'bold',
+        '@media (maxWidth: 600px)': {
+            padding: '5px',
+            fontSize: '12px',
+        },
     },
     cell: {
         flex: '1',
@@ -233,7 +263,13 @@ const styles = {
         textAlign: 'center',
         border: '1px solid #ccc',
         fontSize: '16px',
+        '@media (maxWidth: 600px)': {
+            height: '40px',
+            lineHeight: '40px',
+            fontSize: '14px',
+        },
     },
 };
+
 
 export default App;
