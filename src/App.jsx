@@ -233,7 +233,6 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
-        minWidth: '550px',
         maxWidth: '950px',
         border: '2px solid #ccc',
         borderRadius: '10px',
@@ -253,7 +252,7 @@ const styles = {
     headerCell: {
         flex: '1',
         textAlign: 'center',
-        padding: '10px',
+        padding: '2px',
         backgroundColor: '#ddd',
         border: '1px solid #ccc',
         fontWeight: 'bold',
