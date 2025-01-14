@@ -26,6 +26,7 @@ function App() {
 
         if (remainingNumbers.length === 0) return table;
 
+        let remainingForGeneration = [].concat(remainingNumbers)
         for (let row = 0; row < 3; row++) {
             const rowCells = [];
             const enabledColumns = [];
@@ -40,7 +41,8 @@ function App() {
             for (let col = 0; col < 10; col++) {
                 const range = ranges[col];
                 const isEnabled = enabledColumns.includes(col);
-                const value = isEnabled ? getRandomNumberInRange(range[0], range[1]) : null;
+                const value = isEnabled ? getRandomNumberInRange(range[0], range[1], remainingForGeneration) : null;
+                remainingForGeneration = isEnabled ? remainingForGeneration.filter(num => num !== value) : remainingForGeneration;
                 rowCells.push({value, enabled: isEnabled, shiny: false});
             }
             table.push(rowCells);
@@ -49,14 +51,12 @@ function App() {
     }
 
     // Function to get a random unique number within a given range
-    function getRandomNumberInRange(min, max) {
-        const possibleNumbers = remainingNumbers.filter(num => num >= min && num <= max);
+    function getRandomNumberInRange(min, max, generatedRemainingNumbers) {
+        const possibleNumbers = generatedRemainingNumbers.filter(num => num >= min && num <= max);
         if (possibleNumbers.length === 0) return null;
 
         const randomIndex = Math.floor(Math.random() * possibleNumbers.length);
-        const number = possibleNumbers[randomIndex];
-        setRemainingNumbers(remainingNumbers.filter(num => num !== number)); // Remove number from remaining pool
-        return number;
+        return possibleNumbers[randomIndex];
     }
 
     // Function to generate a new random number and hide it
@@ -233,7 +233,8 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
-        maxWidth: '750px', // Ensure the table does not exceed 750px
+        minWidth: '550px',
+        maxWidth: '950px',
         border: '2px solid #ccc',
         borderRadius: '10px',
         overflow: 'hidden',
@@ -275,6 +276,5 @@ const styles = {
         },
     },
 };
-
 
 export default App;
