@@ -5,6 +5,7 @@ function App() {
     const [randomNumber, setRandomNumber] = useState(null);
     const [showNumber, setShowNumber] = useState(false);
     const [bingoTable, setBingoTable] = useState([]);
+    const [hasWon, setHasWon] = useState(false);
 
     // Function to generate the remaining numbers within the correct ranges
     function generateRemainingNumbers() {
@@ -59,6 +60,16 @@ function App() {
         return possibleNumbers[randomIndex];
     }
 
+    // Check win condition when bingo table updates
+    const checkWinCondition = () => {
+        const allShiny = bingoTable.every(row =>
+            row.every(cell =>
+                !cell.enabled || (cell.enabled && cell.shiny)
+            )
+        );
+        setHasWon(allShiny);
+    };
+
     // Function to generate a new random number and hide it
     const generateNumber = () => {
         if (remainingNumbers.length > 0) {
@@ -68,15 +79,15 @@ function App() {
             setRandomNumber(number);
             setShowNumber(false);
             updateBingoTable(number);
-            return number; // Return the generated number immediately
+            return number;
         }
-        return null; // Return null if no numbers are left
+        return null;
     };
 
     const handleNextNumber = () => {
-        const newNumber = generateNumber(); // Immediately generate a new number
+        const newNumber = generateNumber();
         if (newNumber !== null) {
-            speakNumber(newNumber); // Speak the new number directly
+            speakNumber(newNumber);
         }
     };
 
@@ -86,7 +97,7 @@ function App() {
             prev.map((row) =>
                 row.map((cell) =>
                     cell.value === number && cell.enabled
-                        ? {...cell, shiny: false}  // Reset shiny to false initially
+                        ? {...cell, shiny: false}
                         : cell
                 )
             )
@@ -95,12 +106,12 @@ function App() {
 
     // Function to handle clicking a cell
     const handleCellClick = (cell) => {
-        if (cell.enabled && cell.value === randomNumber) {
+        if (cell.enabled && cell.value === randomNumber && !hasWon) {
             setBingoTable((prev) =>
                 prev.map((row) =>
                     row.map((currentCell) =>
                         currentCell === cell
-                            ? {...currentCell, shiny: true}  // Make cell shiny when clicked
+                            ? {...currentCell, shiny: true}
                             : currentCell
                     )
                 )
@@ -123,12 +134,71 @@ function App() {
         setBingoTable(newTable);
     }, []);
 
+    // Check win condition when bingo table changes
+    useEffect(() => {
+        checkWinCondition();
+    }, [bingoTable]);
+
+    useEffect(() => {
+        const newTable = generateBingoTable();
+        setBingoTable(newTable);
+
+        // Expose setHasWon to trigger win condition
+        window.setHasWon = setHasWon;
+    }, []);
+
     const headers = [
         '00-09', '10-19', '20-29', '30-39', '40-49', '50-59', '60-69', '70-79', '80-89', '90-99'
     ];
 
     return (
         <div style={styles.container}>
+            {hasWon && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                    animation: 'fadeIn 0.5s ease-in'
+                }}>
+                    <div style={{
+                        fontSize: '4rem',
+                        color: '#ffd700',
+                        textAlign: 'center',
+                        textShadow: '0 0 20px #ffd700',
+                        animation: 'pulse 2s infinite',
+                        padding: '2rem',
+                        background: 'linear-gradient(45deg, #8a2be2, #4b0082)',
+                        borderRadius: '20px',
+                        border: '4px solid #ffd700',
+                        boxShadow: '0 0 40px rgba(255, 215, 0, 0.5)'
+                    }}>
+                        🎉 BINGO! VICTORY! 🎉
+                        <div style={{
+                            fontSize: '1.5rem',
+                            marginTop: '1rem',
+                            color: 'white'
+                        }}>
+                            All numbers matched!
+                        </div>
+                    </div>
+                    <div style={{
+                        marginTop: '2rem',
+                        fontSize: '2rem',
+                        color: '#fff',
+                        animation: 'float 3s ease-in-out infinite'
+                    }}>
+                        🎊🥳🎈
+                    </div>
+                </div>
+            )}
             <div style={styles.box} onClick={() => setShowNumber(true)}>
                 <h1 style={styles.number}>{showNumber ? randomNumber : '?'}</h1>
             </div>
@@ -138,17 +208,16 @@ function App() {
                     backgroundColor: remainingNumbers.length === 0 ? 'red' : styles.button.backgroundColor
                 }}
                 onClick={handleNextNumber}
-                disabled={remainingNumbers.length === 0}
+                disabled={remainingNumbers.length === 0 || hasWon}
             >
                 Next Number
             </button>
             <button
                 style={{
                     ...styles.button,
-                    backgroundColor: remainingNumbers.length === 0 ? 'red' : styles.button.backgroundColor
+                    backgroundColor: styles.button.backgroundColor
                 }}
                 onClick={() => speakNumber()}
-                disabled={remainingNumbers.length === 0}
             >
                 Play
             </button>
@@ -167,7 +236,7 @@ function App() {
                                 key={colIdx}
                                 style={{
                                     ...styles.cell,
-                                    backgroundColor: cell.shiny ? 'yellow' : cell.enabled ? '#4caf50' : '#ccc', // Highlight enabled cells when clicked
+                                    backgroundColor: cell.shiny ? 'yellow' : cell.enabled ? '#4caf50' : '#ccc',
                                     cursor: cell.enabled ? 'pointer' : 'not-allowed',
                                 }}
                                 onClick={() => handleCellClick(cell)}
@@ -274,6 +343,20 @@ const styles = {
             fontSize: '14px',
         },
     },
+    '@keyframes pulse': {
+        '0%': {transform: 'scale(1)', opacity: 1},
+        '50%': {transform: 'scale(1.05)', opacity: 0.9},
+        '100%': {transform: 'scale(1)', opacity: 1}
+    },
+    '@keyframes fadeIn': {
+        '0%': {opacity: 0},
+        '100%': {opacity: 1}
+    },
+    '@keyframes float': {
+        '0%': {transform: 'translateY(0px)'},
+        '50%': {transform: 'translateY(-20px)'},
+        '100%': {transform: 'translateY(0px)'}
+    }
 };
 
 export default App;
